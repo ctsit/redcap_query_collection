@@ -4,7 +4,6 @@
 select rcp.project_id, rcp.app_title, rcp.project_name, rcp.creation_time
 from redcap_projects as rcp
 inner join uf_valued_projects as ufvp on (rcp.project_id = ufvp.project_id)
-inner join redcap_project_stats as rcps on (rcp.project_id = rcps.project_id)
 order by rcp.project_id desc;
 
 
@@ -12,7 +11,6 @@ order by rcp.project_id desc;
 select rcp.project_id, rcp.app_title, rcp.project_name, rcp.creation_time, ufpo.email as owner_email, rcui.user_email
 from redcap_projects as rcp
 inner join uf_valued_projects as ufvp on (rcp.project_id = ufvp.project_id)
-inner join redcap_project_stats as rcps on (rcp.project_id = rcps.project_id)
 left join redcap_user_rights as rcur on (rcp.project_id = rcur.project_id)
 inner join redcap_user_information as rcui on (rcur.username = rcui.username)
 left join uf_project_ownership as ufpo on (rcp.project_id = ufpo.project_id)
@@ -25,6 +23,5 @@ order by rcp.project_id desc;
 select ufpo.email as owner_email, count(*)
 from redcap_projects as rcp
 inner join uf_valued_projects as ufvp on (rcp.project_id = ufvp.project_id)
-inner join redcap_project_stats as rcps on (rcp.project_id = rcps.project_id)
 left join uf_project_ownership as ufpo on (rcp.project_id = ufpo.project_id)
 group by email;
