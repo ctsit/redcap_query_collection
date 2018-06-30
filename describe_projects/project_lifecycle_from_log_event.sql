@@ -1,27 +1,18 @@
--- project_deletion_history.sql
+-- project_lifecycle_from_log_event.sql
 
 -- The redcap_log_event table is among the largest redcap tables. In the test
 -- instance where this script was developed it is 2.2m rows The same system
 -- has 29m rows in the corresponding redcap_data table. A row count in the
--- millions is completely normal. To keep the query fast, note the utiltity of
--- these indexed columns:
+-- millions is completely normal. Fortunately, project history is easy to
+-- extract by querying for a specific of list description and that field is
+-- indexed:
 --
 --   description
 --     description is indexed by default
 --     description has a cardinality of 1076
 --     description like "%delete%project%" represents 0.07% of the 2.2 million rows
 --
---   object_type = "redcap_projects"
---     object_type is indexed by default
---     object_types has a cardinality of 182 in our test system.
---     object_type = "redcap_projects" represents 2.5% of the 2.2m rows in redcap_log_event
---
---   event = "MANAGE"
---     event is not indexed by default
---     event has a cardinality of 10 in our test system.
---     event = "MANAGE" represents 50% of the 2.2m rows in redcap_log_event
---     all records with object_type = "redcap_projects" also have event = "MANAGE"
---     event is not as useful object_type for narrowing the row count.
+-- Deletion Events
 --
 -- Every project deletion is composed of multiple events. The simplest event
 -- is a deletion by a user followed by a permanent deletion by the system via
@@ -44,10 +35,26 @@ select *,
 from redcap_log_event
 where
 description in (
-  "Send request to delete project",
-  "Delete project",
-  "Permanently delete project",
-  "Restore/undelete project"
+"Approve production project modifications (automatic)",
+"Create project",
+"Delete project",
+"Request approval for production project modifications",
+"Send request to move project to production status",
+"Move project to production status",
+"Permanently delete project",
+"Copy project",
+"Approve production project modifications",
+"Create project using template",
+"Archive project",
+"Send request to create project",
+"Set project as inactive",
+"Reject production project modifications",
+"Move project back to development status",
+"Return project to production from inactive status",
+"Reset production project modifications",
+"Send request to copy project",
+"Restore/undelete project",
+"Create project (API)"
   )
 order by project_id desc, ts asc
 limit 1000000;
