@@ -1,0 +1,91 @@
+---
+title: "REDCap Project Deletion history"
+author: "Philip Chase"
+date: "6/29/2018"
+output:
+  html_document:
+    highlight: kate
+    theme: cosmo
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_libraries, echo=FALSE, message=FALSE, warning=FALSE, comment=NA}
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  dplyr,
+  ggplot2,
+  lubridate,
+  tidyr
+  )
+
+```
+
+```{r get_inputs, include=FALSE}
+# Inputs and outputs are read from a subdirectory of the ~/Downloads folder for convenience.
+mainDir <- c("~/Downloads/")
+subDir <- c("project_lifecycle")
+download_directory <- file.path(mainDir, subDir)
+dir.create(file.path(mainDir, subDir), showWarnings = FALSE)
+require("knitr")
+opts_knit$set(root.dir = download_directory)
+
+col_classes <- c("integer", "integer", "character", 
+                 "character", "character", "factor", 
+                 "factor", "factor", "character", 
+                 "integer", "factor", "character", 
+                 "factor", "character", "character",
+                 "character", "character")
+del_events <- read.csv(file.path(download_directory, "project_deletion_history.csv"), header=TRUE, sep = ",", quote = '"', stringsAsFactors=FALSE, strip.white=TRUE, na.strings = "NULL", colClasses = col_classes)
+```
+
+```{r mutate_inputs, include=FALSE}
+del_events$event_date <- ymd(del_events$event_date)
+
+```
+
+# REDCap project deletion history on the CTSI REDCap instance
+
+This reports summarizes REDCap project deletion activity on the CTSI REDCap instance. The hope is that the metrics and visualizatons presented here can show how policy changes on this REDCap instance influence the use of the system.
+
+```{r deletion_by_time, include=FALSE}
+# Select only permanent deletions group by event_date and plot result
+perm_deletions_by_month <- del_events %>% 
+  filter(description == "Permanently delete project") %>%
+  select(project_id, event_date) %>%
+  group_by(month = floor_date(event_date, "month")) %>%
+  summarise(deletions = n())
+```
+
+```{r plot_deletion_by_time, echo=FALSE}
+# Plot the size of deletion activity over time
+ggplot(data=perm_deletions_by_month, aes(x=month, y=deletions))  +
+  geom_point() +
+  ylab("Count") + 
+  xlab("Month") +
+  scale_x_date() +
+  ggtitle("Project deletions by month")
+```
+
+```{r deletion_by_time_detail, include=FALSE}
+# Show the detail of deletion activity since the policy announcement
+perm_deletions_by_week <- del_events %>% 
+  filter(description == "Permanently delete project") %>%
+  select(project_id, event_date) %>%
+  filter(event_date >= ymd("2018-05-15")) %>%
+  group_by(week = floor_date(event_date, "week")) %>%
+  summarise(deletions = n())
+```
+
+```{r plot_deletion_by_time_detail, echo=FALSE}
+# Plot the size of deletion activity over time
+ggplot(data=perm_deletions_by_week, aes(x=week, y=deletions))  +
+  geom_point() +
+  ylab("Count") + 
+  xlab("Week") +
+  scale_x_date() +
+  ggtitle("Project deletions by week since the May 15th policy announcement")
+```
