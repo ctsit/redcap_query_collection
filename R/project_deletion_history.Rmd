@@ -67,7 +67,7 @@ deleter_actual<- del_events %>%
   arrange(ts) %>%
   slice(1) %>%
   select(ts, project_id, user, event_date) %>%
-  filter(!project_id %in% deleter_req$project_id)
+  filter(!project_id %in% deleter_requested$project_id)
 
 # Make one data set with the project deleter
 project_deleters <- bind_rows(deleter_requested, deleter_actual) %>% rename(deleter = user)
