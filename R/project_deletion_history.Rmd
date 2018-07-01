@@ -40,6 +40,8 @@ col_classes <- c("integer", "integer", "character",
                  "factor", "character", "character",
                  "character", "character")
 del_events <- read.csv(file.path(download_directory, "project_deletion_history.csv"), header=TRUE, sep = ",", quote = '"', stringsAsFactors=FALSE, strip.white=TRUE, na.strings = "NULL", colClasses = col_classes)
+
+redcap_staff <- read.csv(file.path(download_directory,"redcap_staff.csv"), stringsAsFactors = FALSE)
 ```
 
 ```{r mutate_inputs, include=FALSE}
@@ -51,7 +53,7 @@ del_events$event_date <- ymd(del_events$event_date)
 
 This reports summarizes REDCap project deletion activity on the CTSI REDCap instance. The hope is that the metrics and visualizatons presented here can show how policy changes on this REDCap instance influence the use of the system.
 
-```{r top_deleters, echo=FALSE}
+```{r project_deleters, echo=FALSE}
 # Determine the last user to request deletion
 deleter_requested <- del_events %>%
   filter(description %in% c('Send request to delete project')) %>%
@@ -114,6 +116,17 @@ ggplot(data=deletions_by_week, aes(x=week, y=deletions))  +
   ggtitle("Project deletions by week since the May 15th policy announcement")
 ```
 
-These people are our top deleters:
+These people are our top deleters since the policy announcement:
 
+```{r top_deleters, echo=FALSE}
+top_deleters <- project_deleters %>%
+  filter(!deleter %in% redcap_staff$user) %>%
+  filter(event_date >= policy_announcement_date) %>%
+  group_by(deleter) %>%
+  summarise(count=n()) %>%
+  arrange(desc(count)) %>%
+  filter(count > 5)
 
+kable(top_deleters)
+
+```
