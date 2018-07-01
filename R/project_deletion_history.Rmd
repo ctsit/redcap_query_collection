@@ -33,10 +33,10 @@ dir.create(file.path(mainDir, subDir), showWarnings = FALSE)
 require("knitr")
 opts_knit$set(root.dir = download_directory)
 
-col_classes <- c("integer", "integer", "character", 
-                 "character", "character", "factor", 
-                 "factor", "factor", "character", 
-                 "integer", "factor", "character", 
+col_classes <- c("integer", "integer", "character",
+                 "character", "character", "factor",
+                 "factor", "factor", "character",
+                 "integer", "factor", "character",
                  "factor", "character", "character",
                  "character", "character")
 del_events <- read.csv(file.path(download_directory, "project_deletion_history.csv"), header=TRUE, sep = ",", quote = '"', stringsAsFactors=FALSE, strip.white=TRUE, na.strings = "NULL", colClasses = col_classes)
@@ -51,10 +51,32 @@ del_events$event_date <- ymd(del_events$event_date)
 
 This reports summarizes REDCap project deletion activity on the CTSI REDCap instance. The hope is that the metrics and visualizatons presented here can show how policy changes on this REDCap instance influence the use of the system.
 
+```{r top_deleters, echo=FALSE}
+# Determine the last user to request deletion
+deleter_requested <- del_events %>%
+  filter(description %in% c('Send request to delete project')) %>%
+  group_by(project_id) %>%
+  arrange(ts) %>%
+  slice(1) %>%
+  select(ts, project_id, user, event_date)
+
+# Determine the last user to execute the deletion when there was no requester
+deleter_actual<- del_events %>%
+  filter(description %in% c('Delete project')) %>%
+  group_by(project_id) %>%
+  arrange(ts) %>%
+  slice(1) %>%
+  select(ts, project_id, user, event_date) %>%
+  filter(!project_id %in% deleter_req$project_id)
+
+# Make one data set with the project deleter
+project_deleters <- bind_rows(deleter_requested, deleter_actual) %>% rename(deleter = user)
+
+```
+
 ```{r deletion_by_time, include=FALSE}
 # Select only permanent deletions group by event_date and plot result
-perm_deletions_by_month <- del_events %>% 
-  filter(description == "Permanently delete project") %>%
+deletions_by_month <- project_deleters %>%
   select(project_id, event_date) %>%
   group_by(month = floor_date(event_date, "month")) %>%
   summarise(deletions = n())
@@ -62,9 +84,9 @@ perm_deletions_by_month <- del_events %>%
 
 ```{r plot_deletion_by_time, echo=FALSE}
 # Plot the size of deletion activity over time
-ggplot(data=perm_deletions_by_month, aes(x=month, y=deletions))  +
+ggplot(data=deletions_by_month, aes(x=month, y=deletions))  +
   geom_point() +
-  ylab("Count") + 
+  ylab("Count") +
   xlab("Month") +
   scale_x_date() +
   ggtitle("Project deletions by month")
@@ -72,19 +94,18 @@ ggplot(data=perm_deletions_by_month, aes(x=month, y=deletions))  +
 
 ```{r deletion_by_time_detail, include=FALSE}
 # Show the detail of deletion activity since the policy announcement
-perm_deletions_by_week <- del_events %>% 
-  filter(description == "Permanently delete project") %>%
+deletions_by_week <- project_deleters %>%
   select(project_id, event_date) %>%
-  filter(event_date >= ymd("2018-05-15")) %>%
+  filter(event_date >= ymd("2018-05-01")) %>%
   group_by(week = floor_date(event_date, "week")) %>%
   summarise(deletions = n())
 ```
 
 ```{r plot_deletion_by_time_detail, echo=FALSE}
 # Plot the size of deletion activity over time
-ggplot(data=perm_deletions_by_week, aes(x=week, y=deletions))  +
+ggplot(data=deletions_by_week, aes(x=week, y=deletions))  +
   geom_point() +
-  ylab("Count") + 
+  ylab("Count") +
   xlab("Week") +
   scale_x_date() +
   ggtitle("Project deletions by week since the May 15th policy announcement")
@@ -92,29 +113,3 @@ ggplot(data=perm_deletions_by_week, aes(x=week, y=deletions))  +
 
 These people are our top deleters:
 
-```{r top_deleters, echo=FALSE}
-# Determine the last user to request deletion
-deleter_req <- del_events %>% 
-  filter(description %in% c('Send request to delete project')) %>%
-  group_by(project_id) %>%
-  arrange(ts) %>%
-  slice(1) %>%
-  select(project_id, user)
-
-# Determine the last user to execute the deletion when there was no requester
-deleter_actual<- del_events %>% 
-  filter(description %in% c('Delete project')) %>%
-  group_by(project_id) %>%
-  arrange(ts) %>%
-  slice(1) %>%
-  select(project_id, user) %>%
-  filter(!project_id %in% deleter_req$project_id)
-
-# Make one data set with the project deleter 
-project_deleter <- bind_rows(deleter_req, deleter_actual) %>% rename(deleter = user)
-
-# Add deleter to the list of actually deleted projects
-perm_del_projects <- del_events %>% filter(description %in% 
-  c('Permanently delete project')) %>%
-  inner_join(project_deleter, by="project_id")
-```
