@@ -89,3 +89,32 @@ ggplot(data=perm_deletions_by_week, aes(x=week, y=deletions))  +
   scale_x_date() +
   ggtitle("Project deletions by week since the May 15th policy announcement")
 ```
+
+These people are our top deleters:
+
+```{r top_deleters, echo=FALSE}
+# Determine the last user to request deletion
+deleter_req <- del_events %>% 
+  filter(description %in% c('Send request to delete project')) %>%
+  group_by(project_id) %>%
+  arrange(ts) %>%
+  slice(1) %>%
+  select(project_id, user)
+
+# Determine the last user to execute the deletion when there was no requester
+deleter_actual<- del_events %>% 
+  filter(description %in% c('Delete project')) %>%
+  group_by(project_id) %>%
+  arrange(ts) %>%
+  slice(1) %>%
+  select(project_id, user) %>%
+  filter(!project_id %in% deleter_req$project_id)
+
+# Make one data set with the project deleter 
+project_deleter <- bind_rows(deleter_req, deleter_actual) %>% rename(deleter = user)
+
+# Add deleter to the list of actually deleted projects
+perm_del_projects <- del_events %>% filter(description %in% 
+  c('Permanently delete project')) %>%
+  inner_join(project_deleter, by="project_id")
+```
