@@ -17,6 +17,9 @@
 # RStudio files
 .Rproj.user/
 
+# Knitr output
+*.html
+
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
