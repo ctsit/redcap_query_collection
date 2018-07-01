@@ -94,6 +94,7 @@ ggplot(data=deletions_by_month, aes(x=month, y=deletions))  +
 
 ```{r deletion_by_time_detail, include=FALSE}
 # Show the detail of deletion activity since the policy announcement
+policy_announcement_date <- ymd("2018-05-15")
 deletions_by_week <- project_deleters %>%
   select(project_id, event_date) %>%
   filter(event_date >= ymd("2018-05-01")) %>%
@@ -108,8 +109,11 @@ ggplot(data=deletions_by_week, aes(x=week, y=deletions))  +
   ylab("Count") +
   xlab("Week") +
   scale_x_date() +
+  geom_vline(xintercept = policy_announcement_date) +
+  annotate("text", label = "Policy Announcement", x=policy_announcement_date, y = 0.9 * max(deletions_by_week$deletions), angle = 90) +
   ggtitle("Project deletions by week since the May 15th policy announcement")
 ```
 
 These people are our top deleters:
+
 
