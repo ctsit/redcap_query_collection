@@ -1,7 +1,7 @@
 ---
 title: "REDCap Project Deletion history"
 author: "Philip Chase"
-date: "6/29/2018"
+date: "7/1/2018"
 output:
   html_document:
     highlight: kate
@@ -72,7 +72,9 @@ deleter_actual<- del_events %>%
   filter(!project_id %in% deleter_requested$project_id)
 
 # Make one data set with the project deleter
-project_deleters <- bind_rows(deleter_requested, deleter_actual) %>% rename(deleter = user)
+project_deleters <- bind_rows(deleter_requested, deleter_actual) %>%
+  rename(deleter = user) %>%
+  filter(!deleter %in% redcap_staff$user)
 
 ```
 
