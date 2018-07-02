@@ -42,6 +42,9 @@ col_classes <- c("integer", "integer", "character",
 del_events <- read.csv(file.path(download_directory, "project_deletion_history.csv"), header=TRUE, sep = ",", quote = '"', stringsAsFactors=FALSE, strip.white=TRUE, na.strings = "NULL", colClasses = col_classes)
 
 redcap_staff <- read.csv(file.path(download_directory,"redcap_staff.csv"), stringsAsFactors = FALSE)
+
+redcap_users <- read.csv(file.path(download_directory,"all_users.csv"), header=TRUE, sep = ",", quote = '"', stringsAsFactors=FALSE, strip.white=TRUE, na.strings = "NULL")
+
 ```
 
 ```{r mutate_inputs, include=FALSE}
@@ -114,11 +117,11 @@ ggplot(data=deletions_by_week, aes(x=week, y=deletions))  +
   xlab("Week") +
   scale_x_date() +
   geom_vline(xintercept = floor_date(policy_announcement_date, "week")) +
-  annotate("text", label = "Policy Announcement", x=policy_announcement_date, y = 0.9 * max(deletions_by_week$deletions), angle = 90) +
+  annotate("text", label = "Policy Announcement", x=floor_date(policy_announcement_date, "week") - 1, y = 0.7 * max(deletions_by_week$deletions), angle = 90) +
   ggtitle("Project deletions by week since the May 15th policy announcement")
 ```
 
-These people are our top deleters since the policy announcement:
+These people deleted 4 or more projects since the policy announcement:
 
 ```{r top_deleters, echo=FALSE}
 top_deleters <- project_deleters %>%
@@ -126,8 +129,11 @@ top_deleters <- project_deleters %>%
   filter(event_date >= policy_announcement_date) %>%
   group_by(deleter) %>%
   summarise(count=n()) %>%
+  left_join(redcap_users, by=c("deleter" = "username")) %>%
+  mutate(name = paste(user_firstname, user_lastname)) %>%
+  select(deleter, name, count) %>%
   arrange(desc(count)) %>%
-  filter(count > 5)
+  filter(count >=4)
 
 kable(top_deleters)
 
