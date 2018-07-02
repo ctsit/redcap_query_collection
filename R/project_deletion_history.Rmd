@@ -91,17 +91,19 @@ deletions_by_month <- project_deleters %>%
 
 ```{r plot_deletion_by_time, echo=FALSE}
 # Plot the size of deletion activity over time
+policy_announcement_date <- ymd("2018-05-15")
 ggplot(data=deletions_by_month, aes(x=month, y=deletions))  +
   geom_point() +
-  ylab("Count") +
+  ylab("Deletions") +
   xlab("Month") +
   scale_x_date() +
-  ggtitle("Project deletions by month")
+  geom_vline(xintercept = floor_date(policy_announcement_date, "month")) +
+  annotate("text", label = "Policy Announcement", x=floor_date(policy_announcement_date, "week") - 50, y = 0.7 * max(deletions_by_month$deletions), angle = 90) +
+  ggtitle("Project deletions by month (all data)")
 ```
 
 ```{r deletion_by_time_detail, include=FALSE}
 # Show the detail of deletion activity since the policy announcement
-policy_announcement_date <- ymd("2018-05-15")
 deletions_by_week <- project_deleters %>%
   select(project_id, event_date) %>%
   filter(event_date >= ymd("2018-04-15")) %>%
@@ -113,7 +115,7 @@ deletions_by_week <- project_deleters %>%
 # Plot the size of deletion activity over time
 ggplot(data=deletions_by_week, aes(x=week, y=deletions))  +
   geom_point() +
-  ylab("Count") +
+  ylab("Deletions") +
   xlab("Week") +
   scale_x_date() +
   geom_vline(xintercept = floor_date(policy_announcement_date, "week")) +
