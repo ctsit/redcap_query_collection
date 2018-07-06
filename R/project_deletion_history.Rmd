@@ -45,11 +45,18 @@ redcap_staff <- read.csv(file.path(download_directory,"redcap_staff.csv"), strin
 
 redcap_users <- read.csv(file.path(download_directory,"all_users.csv"), header=TRUE, sep = ",", quote = '"', stringsAsFactors=FALSE, strip.white=TRUE, na.strings = "NULL")
 
+departmental_affiliations <- read.csv(file.path(download_directory,"vivo_departmental_affliations.csv"), header=TRUE, sep = ",", quote = '"', stringsAsFactors=FALSE, strip.white=TRUE, na.strings = "NULL")
+
 ```
 
 ```{r mutate_inputs, include=FALSE}
 del_events$event_date <- ymd(del_events$event_date)
 
+# Remove entries from departmental affiliation that have only a slight mismatch in the name when all other fields are the same.
+departmental_affiliations <- departmental_affiliations %>%
+  group_by(uri, gatorlink, dept_name) %>%
+  arrange(uri, gatorlink, dept_name, desc(name)) %>%
+  filter(row_number()==1)
 ```
 
 # REDCap project deletion history on the CTSI REDCap instance
@@ -133,7 +140,9 @@ top_deleters <- project_deleters %>%
   summarise(count=n()) %>%
   left_join(redcap_users, by=c("deleter" = "username")) %>%
   mutate(name = paste(user_firstname, user_lastname)) %>%
-  select(deleter, name, count) %>%
+  left_join(departmental_affiliations, by=c("deleter" = "gatorlink")) %>%
+  select(deleter, name.x, dept_name, count) %>%
+  rename(name = name.x) %>%
   arrange(desc(count)) %>%
   filter(count >=4)
 
