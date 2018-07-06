@@ -149,3 +149,20 @@ top_deleters <- project_deleters %>%
 kable(top_deleters)
 
 ```
+
+
+These departments are associated with the most deletions
+
+```{r top_deleting_departments}
+
+top_deleting_departments <- project_deleters %>%
+  filter(!deleter %in% redcap_staff$user) %>%
+  filter(event_date >= policy_announcement_date) %>%
+  left_join(departmental_affiliations, by=c("deleter" = "gatorlink")) %>%
+  group_by(dept_name) %>%
+  summarise(count=n()) %>%
+  select(dept_name, count) %>%
+  arrange(desc(count))
+
+kable(top_deleting_departments)
+```
