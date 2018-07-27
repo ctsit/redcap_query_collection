@@ -1,8 +1,8 @@
--- project_state_log.sql
+-- update_project_state_log.sql
 -- Save snapshots of project details to allow retrospective analysis throughout a project's lifecycle
 
-create table project_state_log as
-select now() as report_date, 
+insert into project_state_log
+select now() as report_date,
     rcp.project_id, rcp.project_name, rcp.app_title, rcp.status, rcp.creation_time, rcp.production_time,
     rcp.inactive_time, rcui.username as creator, rcp.surveys_enabled, rcp.repeatforms, rcp.scheduling,
     rcp.purpose, rcp.purpose_other, rcp.double_data_entry, rcp.randomization, rcp.template_id, rcp.date_deleted,
