@@ -1,7 +1,7 @@
 ---
 title: "REDCap Project Deletion history"
 author: "Philip Chase"
-date: "7/1/2018"
+date: "7/27/2018"
 output:
   html_document:
     highlight: kate
@@ -39,7 +39,7 @@ col_classes <- c("integer", "integer", "character",
                  "integer", "factor", "character",
                  "factor", "character", "character",
                  "character", "character")
-del_events <- read.csv(file.path(download_directory, "project_deletion_history.csv"), header=TRUE, sep = ",", quote = '"', stringsAsFactors=FALSE, strip.white=TRUE, na.strings = "NULL", colClasses = col_classes)
+del_events <- read.csv(file.path(download_directory, "project_lifecycle_from_log_event.csv"), header=TRUE, sep = ",", quote = '"', stringsAsFactors=FALSE, strip.white=TRUE, na.strings = "NULL", colClasses = col_classes)
 
 redcap_staff <- read.csv(file.path(download_directory,"redcap_staff.csv"), stringsAsFactors = FALSE)
 
