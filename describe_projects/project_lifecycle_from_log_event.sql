@@ -54,7 +54,8 @@ description in (
 "Reset production project modifications",
 "Send request to copy project",
 "Restore/undelete project",
-"Create project (API)"
+"Create project (API)",
+"Send request to delete project"
   )
 order by project_id desc, ts asc
 limit 1000000;
