@@ -1,9 +1,12 @@
 library(tidyverse)
 library(rvest)
 
+scrape_redcap_repo_data <- function(number_of_entries, create_csv = FALSE){
+
+# number_of_entries: located at bottom of webpage - "Showing 1 to n of y entries" where y is number_of_entries
+# create_csv: signifies whether to create a csv file
+
 url <-  read_html("https://redcap.vanderbilt.edu/consortium/modules/index.php")
-# located at bottom of page - "Showing 1 to n of y entries" where y is number_of_entries
-number_of_entries <- 128
 
 get_private_git_repos <- function(){
 
@@ -68,7 +71,11 @@ scrape_redcap_repo <- function(entry){
 }
 
 # exclude any private github repos
-redcap_repo_entries <- (1:number_of_entries)[-private_git_repos$entry]
+if (nrow(private_git_repos) == 0) {
+  redcap_repo_entries <- (1:number_of_entries)
+  } else {
+  redcap_repo_entries <- (1:number_of_entries)[-private_git_repos$entry]
+}
 
 redcap_repo_data <- list()
 for (entry in redcap_repo_entries){
@@ -82,5 +89,13 @@ redcap_repo_data <- bind_rows(!!!redcap_repo_data) %>%
          deployed = str_remove(deployed, "_v\\d.+")) %>%
   select(title, deployed, version, everything())
 
+if (create_csv){
 write.csv(redcap_repo_data, "redcap_repo_data.csv", row.names = F, na = "")
+}
+
+return(redcap_repo_data)
+
+}
+
+
 
