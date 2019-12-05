@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 library(kableExtra)
 source("R/get_redcap_repo_data.R")
 
-redcap_repo_data <- scrape_redcap_repo_data(number_of_entries = 128, create_csv = F) 
+redcap_repo_data <- scrape_redcap_repo_data(create_csv = F) 
 ```
 
 
