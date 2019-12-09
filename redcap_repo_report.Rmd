@@ -39,10 +39,10 @@ last_module_update <- redcap_repo_data %>%
   distinct() %>% 
   filter(institution == "University of Florida - CTSI") %>%
   arrange(desc(date_added)) %>% 
-  select(title, version, date_added)
+  select(title, version, date_added, downloads)
 
 kable(last_module_update, booktabs = T, 
-      col.names = c("Title", "Version", "Date Added"),
+      col.names = c("Title", "Version", "Date Added", "Downloads"),
       caption = "Last updated date for modules published by UF CTS-IT") %>% 
   kable_styling(latex_option = c("striped", "hold_position"))
 ```
