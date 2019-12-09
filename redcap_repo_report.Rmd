@@ -1,0 +1,49 @@
+---
+title: "REDCap Repository of External Modules"
+output: pdf_document
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+
+library(kableExtra)
+source("R/get_redcap_repo_data.R")
+
+redcap_repo_data <- scrape_redcap_repo_data(create_csv = F)
+```
+
+
+```{r}
+# Published REDCap modules by institution
+published_modules <- redcap_repo_data %>%
+  select(-c(author, author_email)) %>% 
+  distinct() %>% 
+  count(institution) %>%
+  arrange(desc(n))
+
+kable(published_modules, booktabs = T, 
+      col.names = c("Institution", "Number of Modules"),
+      caption = "Published REDCap modules by institution") %>% 
+  kable_styling(latex_options = c("striped", "scale_down", "hold_position"))
+```
+
+```{r}
+# Last updated date for modules published by UF
+last_module_update <- redcap_repo_data %>%
+  select(-c(author, author_email)) %>% 
+  distinct() %>% 
+  filter(institution == "University of Florida - CTSI") %>%
+  arrange(desc(date_added)) %>% 
+  select(title, version, date_added)
+
+kable(last_module_update, booktabs = T, 
+      col.names = c("Title", "Version", "Date Added"),
+      caption = "Last updated date for modules published by UF CTS-IT") %>% 
+  kable_styling(latex_option = c("striped", "hold_position"))
+```
+

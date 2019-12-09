@@ -1,14 +1,21 @@
 library(tidyverse)
 library(rvest)
 
+scrape_redcap_repo_data <- function(create_csv = FALSE){
+
+# create_csv: signifies whether to create a csv file
+
 url <-  read_html("https://redcap.vanderbilt.edu/consortium/modules/index.php")
-# located at bottom of page - "Showing 1 to n of y entries" where y is number_of_entries
-number_of_entries <- 128
+
+redcap_modules <- url %>%
+  html_nodes('#modules-table > tbody > tr')
+
+number_of_entries <- length(redcap_modules)
 
 get_private_git_repos <- function(){
 
-  private_git_repo <- url %>%
-    html_nodes(str_c('#modules-table > tbody > tr:nth-child(',entry, ') > td:nth-child(1) > div:nth-child(1)')) %>%
+  private_git_repo <- redcap_modules[[entry]] %>%
+    html_nodes('td:nth-child(1) > div:nth-child(1)') %>%
     html_text() %>%
     str_detect(., "Private repository")
 
@@ -26,40 +33,40 @@ private_git_repos <- bind_rows(!!!private_git_repos) %>%
   filter(private_git_repo)
 
 scrape_redcap_repo <- function(entry){
-  title <- url %>%
-    html_nodes(str_c('#modules-table > tbody > tr:nth-child(', entry, ') > td:nth-child(1) > div:nth-child(1) > span')) %>%
+  title <- redcap_modules[[entry]] %>%
+    html_nodes('td:nth-child(1) > div:nth-child(1) > span') %>%
     html_text()
 
-  deployed <- url %>%
-    html_nodes(str_c('#modules-table > tbody > tr:nth-child(', entry, ') > td:nth-child(1) > div:nth-child(1) > i')) %>%
+  deployed <- redcap_modules[[entry]] %>%
+    html_nodes('td:nth-child(1) > div:nth-child(1) > i') %>%
     html_text()
 
-  github_url <- url %>%
-    html_nodes(str_c('#modules-table > tbody > tr:nth-child(', entry, ') > td:nth-child(1) > div:nth-child(1) > a')) %>%
+  github_url <- redcap_modules[[entry]] %>%
+    html_nodes('td:nth-child(1) > div:nth-child(1) > a') %>%
     html_attr("href")
 
-  description <- url %>%
-    html_nodes(str_c('#modules-table > tbody > tr:nth-child(', entry, ') > td:nth-child(1) > div:nth-child(2)')) %>%
+  description <- redcap_modules[[entry]] %>%
+    html_nodes('td:nth-child(1) > div:nth-child(2)') %>%
     html_text()
 
-  date_added <- url %>%
-    html_nodes(str_c('#modules-table > tbody > tr:nth-child(', entry, ') > td.text-center.nowrap')) %>%
+  date_added <- redcap_modules[[entry]] %>%
+    html_nodes('td.text-center.nowrap') %>%
     html_text()
 
-  downloads <- url %>%
-    html_nodes(str_c('#modules-table > tbody > tr:nth-child(', entry, ') > td:nth-child(3)')) %>%
+  downloads <- redcap_modules[[entry]] %>%
+    html_nodes('td:nth-child(3)') %>%
     html_text()
 
-  author <- url %>%
-    html_nodes(str_c('#modules-table > tbody > tr:nth-child(', entry, ') > td:nth-child(1) > div:nth-child(3) > a')) %>%
+  author <- redcap_modules[[entry]] %>%
+    html_nodes('td:nth-child(1) > div:nth-child(3) > a') %>%
     html_text()
 
-  author_email <- url %>%
-    html_nodes(str_c('#modules-table > tbody > tr:nth-child(', entry, ') > td:nth-child(1) > div:nth-child(3) > a')) %>%
+  author_email <- redcap_modules[[entry]] %>%
+    html_nodes('td:nth-child(1) > div:nth-child(3) > a') %>%
     html_attr("href")
 
-  institution <-  url %>%
-    html_nodes(str_c('#modules-table > tbody > tr:nth-child(', entry, ') > td:nth-child(1) > div:nth-child(3) > span')) %>%
+  institution <-  redcap_modules[[entry]] %>%
+    html_nodes('td:nth-child(1) > div:nth-child(3) > span') %>%
     html_text()
 
   tibble(title = title, deployed = deployed, github_url = github_url,
@@ -68,7 +75,11 @@ scrape_redcap_repo <- function(entry){
 }
 
 # exclude any private github repos
-redcap_repo_entries <- (1:number_of_entries)[-private_git_repos$entry]
+if (nrow(private_git_repos) == 0) {
+  redcap_repo_entries <- (1:number_of_entries)
+  } else {
+  redcap_repo_entries <- (1:number_of_entries)[-private_git_repos$entry]
+}
 
 redcap_repo_data <- list()
 for (entry in redcap_repo_entries){
@@ -82,5 +93,11 @@ redcap_repo_data <- bind_rows(!!!redcap_repo_data) %>%
          deployed = str_remove(deployed, "_v\\d.+")) %>%
   select(title, deployed, version, everything())
 
+if (create_csv){
 write.csv(redcap_repo_data, "redcap_repo_data.csv", row.names = F, na = "")
+}
+
+return(redcap_repo_data)
+
+}
 
