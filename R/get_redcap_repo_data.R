@@ -57,7 +57,8 @@ scrape_redcap_repo_data <- function(create_csv = FALSE){
     downloads <- redcap_modules[[entry]] %>%
       html_nodes('td:nth-child(4)') %>%
       html_text() %>%
-      str_remove(., ",")
+      str_remove(., ",") %>%
+      as.integer()
 
     author <- redcap_modules[[entry]] %>%
       html_nodes('td:nth-child(1) > div:nth-child(3) > a') %>%
