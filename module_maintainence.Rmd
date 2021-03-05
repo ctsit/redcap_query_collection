@@ -1,0 +1,51 @@
+---
+title: "REDCap External Modules in Need of Attention"
+output: pdf_document
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = FALSE,
+    message = FALSE,
+    warning = FALSE)
+
+library(kableExtra)
+library(dotenv)
+library(gh)
+library(tidyverse)
+library(lubridate)
+source("R/get_redcap_repo_data.R")
+
+redcap_repo_data <- scrape_redcap_repo_data(create_csv = F)
+
+uf_repos_with_github_data <- redcap_repo_data %>%
+  distinct() %>%
+  filter(institution == "University of Florida - CTSI") %>%
+  rowwise() %>%
+  mutate(last_develop_commit =
+           lubridate::ymd_hms(
+           gh("/repos/{org}/{repo}/branches/develop",
+              org = Sys.getenv("ORG"),
+              repo = deployed)$commit$commit$author$date
+           ),
+         last_updated = ymd(last_updated),
+         # github's time data causes false flags for modules released on the day the dev branch updated
+         # bump last_updated by one day to avoid
+         needs_release = last_develop_commit > (last_updated + ddays(1)),
+         # reformat for better visual
+         last_develop_commit = format(last_develop_commit, "%Y-%m-%d"),
+         )
+```
+
+```{r}
+uf_repos_release_needed <- uf_repos_with_github_data %>%
+  filter(needs_release) %>%
+  arrange(desc(downloads)) %>%
+  select(title, last_updated, last_develop_commit, downloads)
+
+kable(uf_repos_release_needed, booktabs = T,
+      col.names = c("Title", "Released to REDCap Repo", "Last Develop Commit", "Downloads"),
+      caption = "Modules published by UF CTS-IT in Need of Release") %>%
+  kable_styling(latex_option = c("striped", "hold_position"))
+```
