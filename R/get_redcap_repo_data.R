@@ -60,15 +60,21 @@ scrape_redcap_repo <- function(entry){
 
   author <- redcap_modules[[entry]] %>%
     html_nodes('td:nth-child(1) > div:nth-child(3) > a') %>%
-    html_text()
+    html_text() %>%
+    unique() %>%
+    paste(collapse = ", ")
 
   author_email <- redcap_modules[[entry]] %>%
     html_nodes('td:nth-child(1) > div:nth-child(3) > a') %>%
-    html_attr("href")
+    html_attr("href") %>%
+    unique() %>%
+    paste(collapse = ", ")
 
   institution <-  redcap_modules[[entry]] %>%
     html_nodes('td:nth-child(1) > div:nth-child(3) > span') %>%
-    html_text()
+    html_text() %>%
+    unique() %>%
+    paste(collapse = ", ")
 
   tibble(title = title, deployed = deployed, github_url = github_url,
          description = description, date_added = date_added, downloads = downloads,
