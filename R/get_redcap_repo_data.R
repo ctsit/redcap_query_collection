@@ -50,11 +50,15 @@ scrape_redcap_repo <- function(entry){
     html_text()
 
   date_added <- redcap_modules[[entry]] %>%
-    html_nodes('td.text-center.nowrap') %>%
+    html_nodes('td:nth-child(2)') %>%
+    html_text()
+
+  last_updated <- redcap_modules[[entry]] %>%
+    html_nodes('td:nth-child(3)') %>%
     html_text()
 
   downloads <- redcap_modules[[entry]] %>%
-    html_nodes('td:nth-child(3)') %>%
+    html_nodes('td:nth-child(4)') %>%
     html_text() %>%
     str_remove(., ",")
 
@@ -77,8 +81,8 @@ scrape_redcap_repo <- function(entry){
     paste(collapse = ", ")
 
   tibble(title = title, deployed = deployed, github_url = github_url,
-         description = description, date_added = date_added, downloads = downloads,
-         author = author, author_email = author_email, institution = institution)
+         description = description, date_added = date_added, last_updated = last_updated,
+         downloads = downloads, author = author, author_email = author_email, institution = institution)
 }
 
 # exclude any private github repos
