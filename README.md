@@ -1,4 +1,4 @@
-# redcap_query_collection
+# REDCap Query Collection
 A collection of SQL queries that shine light on your REDCap metadata
 
 # Queries
