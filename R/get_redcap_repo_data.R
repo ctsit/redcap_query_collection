@@ -31,52 +31,52 @@ scrape_redcap_repo_data <- function(create_csv = FALSE) {
 
   scrape_redcap_repo <- function(entry) {
     title <- redcap_modules[[entry]] %>%
-    html_nodes('td:nth-child(1) > div:nth-child(1) > span') %>%
-    html_text()
+      html_nodes('td:nth-child(1) > div:nth-child(1) > span') %>%
+      html_text()
 
     deployed <- redcap_modules[[entry]] %>%
-    html_nodes('td:nth-child(1) > div:nth-child(1) > i') %>%
-    html_text()
+      html_nodes('td:nth-child(1) > div:nth-child(1) > i') %>%
+      html_text()
 
     github_url <- redcap_modules[[entry]] %>%
-    html_nodes('td:nth-child(1) > div:nth-child(2) > a:nth-child(1)') %>%
-    html_attr("href")
+      html_nodes('td:nth-child(1) > div:nth-child(2) > a:nth-child(1)') %>%
+      html_attr("href")
 
     description <- redcap_modules[[entry]] %>%
-    html_nodes('td:nth-child(1) > div:nth-child(3)') %>%
-    html_text()
+      html_nodes('td:nth-child(1) > div:nth-child(3)') %>%
+      html_text()
 
     date_added <- redcap_modules[[entry]] %>%
-    html_nodes('td:nth-child(2)') %>%
-    html_text()
+      html_nodes('td:nth-child(2)') %>%
+      html_text()
 
     last_updated <- redcap_modules[[entry]] %>%
-    html_nodes('td:nth-child(3)') %>%
-    html_text()
+      html_nodes('td:nth-child(3)') %>%
+      html_text()
 
     downloads <- redcap_modules[[entry]] %>%
-    html_nodes('td:nth-child(4)') %>%
-    html_text() %>%
-    str_remove(., ",") %>%
-    as.integer()
+      html_nodes('td:nth-child(4)') %>%
+      html_text() %>%
+      str_remove(., ",") %>%
+      as.integer()
 
     author <- redcap_modules[[entry]] %>%
-    html_nodes('td:nth-child(1) > div:nth-child(4) > a') %>%
-    html_text() %>%
-    unique() %>%
-    paste(collapse = ", ")
+      html_nodes('td:nth-child(1) > div:nth-child(4) > a') %>%
+      html_text() %>%
+      unique() %>%
+      paste(collapse = ", ")
 
     author_email <- redcap_modules[[entry]] %>%
-    html_nodes('td:nth-child(1) > div:nth-child(4) > a') %>%
-    html_attr("href") %>%
-    unique() %>%
-    paste(collapse = ", ")
+      html_nodes('td:nth-child(1) > div:nth-child(4) > a') %>%
+      html_attr("href") %>%
+      unique() %>%
+      paste(collapse = ", ")
 
     institution <- redcap_modules[[entry]] %>%
-    html_nodes('td:nth-child(1) > div:nth-child(4) > span') %>%
-    html_text() %>%
-    unique() %>%
-    paste(collapse = ", ")
+      html_nodes('td:nth-child(1) > div:nth-child(4) > span') %>%
+      html_text() %>%
+      unique() %>%
+      paste(collapse = ", ")
 
     tibble(title = title, deployed = deployed, github_url = github_url,
            description = description, date_added = date_added, last_updated = last_updated,
