@@ -1,9 +1,9 @@
 library(tidyverse)
 library(rvest)
 
-scrape_redcap_repo_data <- function(create_csv = FALSE){
+scrape_redcap_repo_data <- function(create_csv = FALSE) {
 
-  url <-  read_html("https://redcap.vanderbilt.edu/consortium/modules/index.php")
+  url <- read_html("https://redcap.vanderbilt.edu/consortium/modules/index.php")
 
   # using html_table results in loss of github links
   # and require extraction of all fields other than dates and downloads
@@ -22,14 +22,14 @@ scrape_redcap_repo_data <- function(create_csv = FALSE){
   }
 
   private_git_repos <- list()
-  for (entry in c(1:number_of_entries)){
+  for (entry in c(1:number_of_entries)) {
     private_git_repos[[entry]] <- get_private_git_repos()
   }
 
   private_git_repos <- bind_rows(!!!private_git_repos) %>%
     filter(private_git_repo)
 
-  scrape_redcap_repo <- function(entry){
+  scrape_redcap_repo <- function(entry) {
     title <- redcap_modules[[entry]] %>%
       html_nodes('td:nth-child(1) > div:nth-child(1) > span') %>%
       html_text()
@@ -39,11 +39,11 @@ scrape_redcap_repo_data <- function(create_csv = FALSE){
       html_text()
 
     github_url <- redcap_modules[[entry]] %>%
-      html_nodes('td:nth-child(1) > div:nth-child(1) > a') %>%
+      html_nodes('td:nth-child(1) > div:nth-child(2) > a:nth-child(1)') %>%
       html_attr("href")
 
     description <- redcap_modules[[entry]] %>%
-      html_nodes('td:nth-child(1) > div:nth-child(2)') %>%
+      html_nodes('td:nth-child(1) > div:nth-child(3)') %>%
       html_text()
 
     date_added <- redcap_modules[[entry]] %>%
@@ -61,19 +61,19 @@ scrape_redcap_repo_data <- function(create_csv = FALSE){
       as.integer()
 
     author <- redcap_modules[[entry]] %>%
-      html_nodes('td:nth-child(1) > div:nth-child(3) > a') %>%
+      html_nodes('td:nth-child(1) > div:nth-child(4) > a') %>%
       html_text() %>%
       unique() %>%
       paste(collapse = ", ")
 
     author_email <- redcap_modules[[entry]] %>%
-      html_nodes('td:nth-child(1) > div:nth-child(3) > a') %>%
+      html_nodes('td:nth-child(1) > div:nth-child(4) > a') %>%
       html_attr("href") %>%
       unique() %>%
       paste(collapse = ", ")
 
-    institution <-  redcap_modules[[entry]] %>%
-      html_nodes('td:nth-child(1) > div:nth-child(3) > span') %>%
+    institution <- redcap_modules[[entry]] %>%
+      html_nodes('td:nth-child(1) > div:nth-child(4) > span') %>%
       html_text() %>%
       unique() %>%
       paste(collapse = ", ")
@@ -91,7 +91,7 @@ scrape_redcap_repo_data <- function(create_csv = FALSE){
   }
 
   redcap_repo_data <- list()
-  for (entry in redcap_repo_entries){
+  for (entry in redcap_repo_entries) {
     redcap_repo_data[[entry]] <- scrape_redcap_repo(entry)
   }
 
@@ -102,7 +102,7 @@ scrape_redcap_repo_data <- function(create_csv = FALSE){
            deployed = str_remove(deployed, "_v\\d.+")) %>%
     select(title, deployed, version, everything())
 
-  if (create_csv){
+  if (create_csv) {
     write.csv(redcap_repo_data, "redcap_repo_data.csv", row.names = F, na = "")
   }
 
