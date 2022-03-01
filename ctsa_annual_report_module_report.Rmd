@@ -1,0 +1,49 @@
+---
+title: "REDCap External Modules updated in the past year"
+output: pdf_document
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = FALSE,
+    message = FALSE,
+    warning = FALSE)
+
+library(kableExtra)
+library(dotenv)
+library(gh)
+library(tidyverse)
+library(lubridate)
+source("R/get_redcap_repo_data.R")
+
+redcap_repo_data <- scrape_redcap_repo_data(create_csv = F)
+
+first_day_of_reporting_period <- "2021-03-01"
+last_day_of_reporting_period_plus_1_day <- "2022-03-01"
+
+past_year_of_module_updates <- redcap_repo_data  %>%
+  distinct() %>%
+  filter(institution == "University of Florida - CTSI") %>%
+  mutate(last_updated = ymd(last_updated)) %>%
+  arrange(desc(last_updated)) %>%
+  filter(ymd(last_updated) >= first_day_of_reporting_period) %>%
+  filter(ymd(last_updated) < last_day_of_reporting_period_plus_1_day) %>%
+  arrange(title) %>%
+  mutate(paragraph_1 = paste0(title, ": ", description)) %>%
+  mutate(readme_url = paste(github_url, "#readme", sep="/")) %>%
+  select(paragraph_1, readme_url) %>%
+  mutate(module_text = paste(paragraph_1, readme_url, sep="\n")) %>%
+  select(module_text)
+```
+
+```{r table-of-updated-modules}
+kable(past_year_of_module_updates, booktabs = T,
+      col.names = c("Module text"),
+      caption = "Modules (re)published by UF CTS-IT in the past year") %>%
+  kable_styling(latex_option = c("striped", "hold_position"), full_width = TRUE)
+```
+
+Replace the URLs to the READMEs above with the Zenodo-generated citation for each software project. Each README contains a badge with a link to the Zenodo web page for that DOI. The citation text is in the lower right-hand corner. 
+
+Use this updated content to update the CTSA Annual report in late February or early March each year.

@@ -37,3 +37,14 @@ vignettes/*.pdf
 
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
+
+# knitr output
+*.pdf
+
+# the default environment file
+.env
+
+# data files and logs
+*.csv
+*.json
+*.log
